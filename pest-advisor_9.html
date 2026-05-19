@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pest Advisor">
+<title>Garden Pest Advisor</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f0fdf4; max-width: 430px; margin: 0 auto; min-height: 100vh; }
+  .header { background: #15803d; color: white; padding: env(safe-area-inset-top, 36px) 16px 14px; display: flex; align-items: center; gap: 10px; padding-top: max(36px, env(safe-area-inset-top)); }
+  .header-back { background: none; border: none; color: white; font-size: 26px; cursor: pointer; padding: 0 8px 0 0; line-height: 1; }
+  .header-title { font-weight: 700; font-size: 18px; }
+  .header-sub { font-size: 11px; color: #bbf7d0; }
+  .page { padding: 16px; }
+  .btn-card { background: white; border-radius: 14px; padding: 18px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.07); border: 2px solid #86efac; }
+  .btn-card.yellow { border-color: #fde68a; }
+  .btn-card-emoji { font-size: 34px; }
+  .btn-card-title { font-weight: 700; font-size: 16px; color: #111; }
+  .btn-card-sub { font-size: 13px; color: #6b7280; }
+  .alert-box { background: #fefce8; border: 1.5px solid #fde68a; border-radius: 12px; padding: 12px 14px; }
+  .alert-title { font-weight: 700; font-size: 12px; color: #92400e; margin-bottom: 4px; }
+  .alert-body { font-size: 13px; color: #78350f; line-height: 1.6; }
+  .search-input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid #bbf7d0; font-size: 16px; outline: none; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+  .badge-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .badge { border-radius: 8px; padding: 4px 10px; font-size: 12px; font-weight: 600; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-orange { background: #ffedd5; color: #9a3412; }
+  .badge-purple { background: #ede9fe; color: #5b21b6; }
+  .pest-card { background: white; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.06); border: 1.5px solid #86efac; }
+  .pest-card.disease { border-color: #fdba74; }
+  .pest-card.vertebrate { border-color: #c4b5fd; }
+  .pest-card-emoji { font-size: 26px; flex-shrink: 0; }
+  .pest-card-name { font-weight: 600; font-size: 15px; color: #111; }
+  .pest-card-type { font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 600; margin-left: 4px; }
+  .pest-card-damage { font-size: 12px; color: #6b7280; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .pest-card-arrow { color: #15803d; font-size: 20px; flex-shrink: 0; margin-left: auto; }
+  .symptom-card { background: white; border: 1.5px solid #fde68a; border-radius: 12px; padding: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .symptom-emoji { font-size: 28px; }
+  .symptom-label { font-weight: 600; color: #111; font-size: 15px; }
+  .symptom-arrow { margin-left: auto; color: #d97706; font-size: 20px; }
+  .symptom-hint { background: #fef3c7; border: 1px solid #fde68a; border-radius: 10px; padding: 10px 12px; margin-bottom: 14px; font-size: 13px; color: #78350f; }
+  .detail-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+  .detail-header { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+  .detail-emoji { font-size: 44px; }
+  .detail-name { font-size: 18px; font-weight: 700; color: #111; }
+  .detail-season { font-size: 12px; color: #6b7280; margin-top: 2px; }
+  .damage-box { background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 10px 12px; }
+  .damage-label { font-size: 11px; font-weight: 700; color: #b91c1c; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .damage-text { font-size: 13px; color: #991b1b; }
+  .source-text { margin-top: 10px; font-size: 11px; color: #9ca3af; }
+  .tabs { display: flex; background: #f3f4f6; border-radius: 12px; padding: 4px; margin-bottom: 12px; gap: 2px; }
+  .tab { flex: 1; padding: 8px 4px; border-radius: 8px; text-align: center; cursor: pointer; font-size: 12px; font-weight: 600; color: #6b7280; border: none; background: transparent; }
+  .tab.active-organic { background: #15803d; color: white; }
+  .tab.active-conventional { background: #d97706; color: white; }
+  .tab.active-ipm { background: #1d4ed8; color: white; }
+  .treatment-card { background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; font-size: 13px; color: #166534; }
+  .conventional-warning { background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 12px; padding: 10px 14px; margin-bottom: 10px; font-size: 12px; color: #92400e; font-weight: 500; }
+  .conventional-card { background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; font-size: 13px; color: #92400e; }
+  .ipm-card { background: #eff6ff; border: 1.5px solid #bfdbfe; border-radius: 12px; padding: 14px 16px; }
+  .ipm-label { font-size: 11px; font-weight: 700; color: #1d4ed8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .ipm-text { font-size: 14px; color: #1e3a8a; line-height: 1.65; }
+  .no-results { text-align: center; color: #6b7280; margin-top: 32px; font-size: 14px; }
+  .spacer { height: 32px; }
+  .bg-disease { background: #fff7ed; }
+  .bg-vertebrate { background: #f5f3ff; }
+  .bg-insect { background: #f0fdf4; }
+  .bg-symptom { background: #fffbeb; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+const PESTS = [
+  { name:"Caterpillars (Leaf-Feeding)", emoji:"🐛", type:"insect", season:"Spring–Fall",
+    source:"UC IPM Pest Notes: Leaf-Feeding Caterpillars (updated Aug 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/caterpillars-leaf-feeding/",
+    damage:"Chewed or skeletonized leaves, defoliation. Frass (droppings) on leaves or soil below.",
+    symptoms:["holes","chewed","missing foliage","defoliation","skeletonized leaves"],
+    organic:["Bt (Bacillus thuringiensis) — spray when larvae are small; most effective on young caterpillars","Spinosad — effective on many species; toxic to bees when wet, don't apply to flowering plants","Hand-pick and drop into soapy water","Row covers to exclude egg-laying adults"],
+    conventional:["Spinosad (if not considered organic in your context) — short residual","Pyrethrins — fast knockdown, short residual; apply at dusk to protect bees"],
+    ipm:"Inspect plants for eggs and small larvae before populations grow large. Many caterpillars are controlled by naturally occurring parasitic wasps and flies — avoid broad-spectrum insecticides. UC IPM notes that Bt is most effective on small larvae and must be ingested to work." },
+
+  { name:"Aphids", emoji:"🟢", type:"insect", season:"Peak late spring (65–80°F)",
+    source:"UC IPM Pest Notes: Aphids (updated Aug 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/aphids/",
+    damage:"Sticky honeydew on leaves, sooty mold, curled or distorted leaves and shoot tips. Most established plants tolerate light aphid feeding.",
+    symptoms:["sticky","honeydew","sooty mold","curled leaves","distorted","yellowing","white cast skins"],
+    organic:["Strong stream of water — knock aphids off; most won't return","Insecticidal soap or horticultural/neem oil — smothers aphids; coat all surfaces; don't apply above 90F or to drought-stressed plants","Prune out heavily infested curled leaves","Reflective silver mulch — repels aphids from seedlings"],
+    conventional:["Malathion, permethrin, or acephate (nonfood crops only) — foliar spray; kills natural enemies, use sparingly","Imidacloprid (systemic soil drench) — for serious infestations on woody ornamentals only; do NOT apply to plants in bloom; as of Jan 2025 only available to licensed applicators in CA"],
+    ipm:"UC IPM emphasizes natural enemy conservation: parasitic wasps, lady beetles, lacewings, and syrphid fly larvae all attack aphids. Manage ants (which protect aphids) with sticky trunk bands. Avoid excess nitrogen fertilizer. Most established plants outgrow damage without treatment." },
+
+  { name:"Whiteflies", emoji:"🤍", type:"insect", season:"Summer–Fall (warm weather)",
+    source:"UC IPM Pest Notes: Whiteflies (updated Apr 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/whiteflies/",
+    damage:"Yellowing or death of leaves, sticky honeydew, sooty mold. Outbreaks often occur when natural biological control is disrupted.",
+    symptoms:["white flying insects","sticky leaves","yellowing","sooty mold","tiny white bugs on undersides"],
+    organic:["Insecticidal soap or horticultural oil — target undersides of leaves where nymphs feed","Neem oil — disrupts development","Yellow sticky traps — monitor and reduce adult populations","Vacuum adults off plants in early morning when cool"],
+    conventional:["UC IPM advises against broad-spectrum pesticides (pyrethroids, organophosphates, neonicotinoids) — whiteflies quickly develop resistance and natural enemies are destroyed"],
+    ipm:"UC IPM: Management is very difficult once populations are high. Focus on conserving natural enemies. Avoid broad-spectrum sprays. Remove heavily infested leaves. Sooty mold follows honeydew — control whiteflies to control the mold." },
+
+  { name:"Slugs & Snails", emoji:"🐌", type:"insect", season:"Active in wet/cool conditions",
+    source:"UC IPM Pest Notes: Snails and Slugs (updated Mar 2018, Quick Tips Apr 2024)",
+    url:"https://ipm.ucanr.edu/PMG/PESTNOTES/pn7427.html",
+    damage:"Irregular holes in leaves, flowers, and fruit. Silvery slime trails confirm their presence.",
+    symptoms:["slime trail","silvery trail","holes in edges","night damage","seedling collapse"],
+    organic:["Iron phosphate bait (e.g., Sluggo) — UC IPM recommends as safer around dogs, children, and wildlife","Ferric sodium EDTA — similar to iron phosphate but faster-acting","Copper barrier — 4-6 inch wide band buried 1 inch below soil","Beer traps — bury at soil level, check daily","Hand-pick at night from plants, fence ledges, and meter boxes"],
+    conventional:["Metaldehyde bait — UC IPM notes it can be poisonous to dogs and birds, and loses effectiveness after rain; use with caution"],
+    ipm:"UC IPM: Baits alone don't provide long-term control — must also eliminate shelter and moisture. Remove hiding spots (boards, dense ivy, debris near trunks). Switch to drip irrigation or water in morning. Irrigate before applying bait; apply in evening on warm days. Scatter bait; don't pile it." },
+
+  { name:"Spider Mites", emoji:"🕷️", type:"insect", season:"Hot, dry weather (June–Sept)",
+    source:"UC IPM Pest Notes: Spider Mites (updated June 2023)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/spider-mites/",
+    damage:"Stippled, pale, or bronzed leaves. Fine webbing on leaf undersides. Leaves may dry and fall in severe cases.",
+    symptoms:["stippled","bronzed","webbing","fine webs","speckling","dusty webbing"],
+    organic:["Strong water spray — regularly hose off plants, focusing on leaf undersides","Insecticidal soap or neem oil — coat all leaf surfaces","Predatory mites (Neoseiulus californicus) — conserve or purchase for release"],
+    conventional:["UC IPM advises against most broad-spectrum insecticides — they kill natural enemies and trigger worse mite outbreaks; use narrow-range miticides like sulfur or bifenazate if needed"],
+    ipm:"UC IPM: Outbreaks often follow application of broad-spectrum insecticides that kill natural predators. Dusty conditions favor mites — hose plants and manage dust. Avoid water stress. Natural enemies usually provide adequate control if not disrupted." },
+
+  { name:"Scale Insects", emoji:"🟤", type:"insect", season:"Year-round (crawlers spring)",
+    source:"UC IPM Pest Notes: Scales (updated Aug 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/scales/",
+    damage:"Yellowing, leaf drop, honeydew, sooty mold, branch dieback. Hard or soft waxy bumps on stems and leaves.",
+    symptoms:["bumps on stems","waxy bumps","honeydew","sooty mold","cottony masses","branch dieback"],
+    organic:["Horticultural oil — smothers all life stages; most effective as dormant-season spray or targeting crawlers","Insecticidal soap — effective on mobile crawler stage (first instar); check for crawlers in spring","Scrape off with cotton swab dipped in isopropyl alcohol on small infestations"],
+    conventional:["Imidacloprid soil drench — systemic; as of Jan 2025 available only to licensed applicators in CA for outdoor use; do NOT apply to plants in bloom"],
+    ipm:"UC IPM emphasizes biological control: parasitic wasps and predators control scales naturally. Scout for crawlers in spring — most vulnerable stage. Protect beneficial insects by avoiding broad-spectrum sprays. Manage ants, which protect scales from natural enemies." },
+
+  { name:"Thrips", emoji:"⚡", type:"insect", season:"Spring–Summer",
+    source:"UC IPM Pest Notes: Thrips (updated Apr 2024)",
+    url:"https://ipm.ucanr.edu/PMG/PESTNOTES/pn7429.html",
+    damage:"Scabby, silvery to dark brown discoloration on fruit, leaves, or petals. Dark specks of excrement. Distorted or dead shoot tips.",
+    symptoms:["silver streaks","silvery scarring","bronzed","distorted flowers","black specks","scabby fruit"],
+    organic:["Spinosad — effective but toxic to bees when wet; don't apply to flowering plants","Insecticidal soap or horticultural oil — must contact thrips directly","Blue or yellow sticky traps — monitor adult populations","Remove infested plant parts"],
+    conventional:["UC IPM advises AGAINST organophosphates (malathion), carbamates (carbaryl*), and pyrethroids — toxic to natural enemies, cause spider mite outbreaks; *carbaryl is restricted use in CA as of Aug 2020"],
+    ipm:"UC IPM: Confirm thrips are present before treating — shake foliage over white paper to see them. Many thrips species are beneficial predators of mites. Avoid broad-spectrum pesticides. Remove crop residue after harvest." },
+
+  { name:"Fungus Gnats", emoji:"🦟", type:"insect", season:"Year-round (worse when overwatering)",
+    source:"UC IPM Pest Notes: Fungus Gnats (updated Aug 2013)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/fungus-gnats/",
+    damage:"Larvae feed on roots in moist soil. Adults are a nuisance. Wilting and yellowing in containers.",
+    symptoms:["tiny flies near soil","mosquito-like flies indoors","wilting containers","flies around plants"],
+    organic:["Reduce excess moisture — UC IPM: physical and cultural management targeting the larval stage is key","Let soil dry between waterings — allow top 1-2 inches to dry; larvae cannot survive in dry soil","Bt israelensis soil drench — kills larvae in growing media; very effective","Beneficial nematodes (Steinernema feltiae) — soil drench for larval control","Predatory mites (Hypoaspis spp.) — naturally occurring or purchased; prey on larvae","Yellow sticky traps at soil level — monitor and catch adults"],
+    conventional:["Pyrethrin-based soil drench — for severe infestations"],
+    ipm:"UC IPM (Aug 2013): Target the larval stage, not adults — most of the life cycle is spent in soil. Adults are weak fliers and stay near potted plants. Larvae can leave slime trails on soil resembling snail trails. Overwatering, poor drainage, and incompletely composted organic matter all favor fungus gnats. Insecticides not generally recommended for home use. Zone 9b: worse in winter when indoor plants are overwatered in low light." },
+
+  { name:"Tomato Hornworm", emoji:"🍅", type:"insect", season:"June–Aug",
+    source:"UC IPM Pest Notes: Leaf-Feeding Caterpillars (updated Aug 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/caterpillars-leaf-feeding/",
+    damage:"Rapid defoliation of tomatoes, peppers, and eggplant. Large green caterpillar with white diagonal stripes and a horn.",
+    symptoms:["rapid defoliation","large green caterpillar","stripped tomato","stems bare","hornworm"],
+    organic:["Hand-pick — very effective; drop into soapy water","Bt (Bacillus thuringiensis) — spray foliage; most effective on small larvae","Spinosad — effective contact and ingestion; avoid applying to flowers"],
+    conventional:["Pyrethrins — fast knockdown; apply at dusk"],
+    ipm:"UC IPM: If you see small white rice-like cocoons on the caterpillar's back, that's a parasitic wasp (Cotesia congregata) — leave the caterpillar to allow the parasites to complete their life cycle. Excellent biocontrol." },
+
+  { name:"Cabbage Worm", emoji:"🥦", type:"insect", season:"Fall–Spring (Zone 9b)",
+    source:"UC IPM Pest Notes: Leaf-Feeding Caterpillars (updated Aug 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/caterpillars-leaf-feeding/",
+    damage:"Holes in brassica leaves; frass inside cabbage, broccoli, and kale heads.",
+    symptoms:["holes in cabbage","broccoli damage","pale green caterpillar","frass","kale holes"],
+    organic:["Bt (Bacillus thuringiensis) — most effective on young larvae; spray foliage weekly","Row covers — exclude egg-laying white butterflies before planting","Hand-pick pale yellow eggs from leaf undersides"],
+    conventional:["Spinosad — effective with short residual; good choice near harvest"],
+    ipm:"UC IPM: Brassicas grown in Zone 9b in fall-spring avoid the worst summer pest pressure. Plant sweet alyssum or dill nearby to attract parasitic wasps. Bt is the first-line treatment in organic systems." },
+
+  { name:"Japanese Beetle", emoji:"🪲", type:"insect", season:"June–Aug",
+    source:"UC IPM: Japanese Beetle — Invasive and Exotic Pest (eradication ongoing in CA)",
+    url:"https://ipm.ucanr.edu/Invasive-and-Exotic-Pests/Japanese-Beetle/",
+    damage:"Skeletonized, lacy leaves. Metallic green/bronze beetles feed in groups on 300+ plant species.",
+    symptoms:["skeletonized leaves","lacy leaves","metallic beetle","group feeding","rose damage"],
+    organic:["Report immediately — UC IPM: if you find suspected Japanese beetles in CA, contact your county agricultural commissioner or CDFA Pest Hotline: 800-491-1899; eradication is ongoing","Hand-pick into soapy water — best in early morning when beetles are sluggish","Bt galleriae (Btg) — biological insecticide effective on Japanese beetle where established","Entomopathogenic nematodes (Heterorhabditis spp.) — soil drench for larval grub control","Remove dropped or overripe fruit — adults also feed on injured fruit"],
+    conventional:["Carbaryl (Sevin) — contact insecticide; restricted use material in CA as of Aug 2020; requires licensed applicator"],
+    ipm:"Avoid pheromone traps — they attract more beetles than they capture. Focus on direct removal. Japanese beetles are not yet as established in California as in eastern states." },
+
+
+  { name:"Earwigs", emoji:"🦀", type:"insect", season:"Year-round (worse spring–summer)",
+    source:"UC IPM Pest Notes: Earwigs (home and landscape, updated 2023)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/earwigs/",
+    damage:"Ragged holes in leaves, flowers, and soft fruit. Seedling damage. Silvery surface feeding. Seek dark, cool, moist hiding spots during the day; feed at night.",
+    symptoms:["holes in leaves","ragged holes","chewed flowers","seedling damage","earwig","holes in fruit"],
+    organic:["Tuna can oil trap — UC IPM #1 recommendation: fill a low-sided tuna or cat food can with 1/2 inch of fish oil (tuna oil) or vegetable oil + drop of bacon grease; sink flush with soil; earwigs are strongly attracted; empty daily","Rolled newspaper or cardboard traps — set out at dusk; collect and destroy each morning","Remove daytime hiding spots — boards, loose clods of soil, dense groundcover, debris near trunks","Drip irrigate where possible — reduces surface moisture earwigs need","Sticky barrier (Tanglefoot) on fruit tree trunks — keeps earwigs out of stone fruit; harvest fruit as soon as ripe"],
+    conventional:["Spinosad bait (Entrust or Sluggo Plus) — scatter on soil at dusk; UC IPM notes insecticides are rarely needed","UC IPM: Insecticides should rarely be needed for earwigs"],
+    ipm:"UC IPM: Earwigs are largely beneficial — they eat aphids, mites, and other soft-bodied insects. Tolerate low populations. Trapping with oil cans is highly effective and the recommended first step. Large numbers indoors are an annoyance but not a health hazard — sweep or vacuum them up, seal entry points, and replace white outdoor lights with yellow bulbs which are less attractive to earwigs." },
+
+  { name:"Mealybugs", emoji:"🤍", type:"insect", season:"Year-round (mild winters favor year-round populations)",
+    source:"UC IPM Pest Notes: Mealybugs (updated Mar 2016)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/mealybugs/",
+    damage:"White cottony masses on stems, leaves, and crowns. Sticky honeydew, sooty mold, wilting, leaf drop, stunted growth. Common on citrus, grapes, succulents, and ornamentals.",
+    symptoms:["white cottony masses","cottony white","waxy white clusters","honeydew","sooty mold","white fuzzy","mealybug"],
+    organic:["Strong water spray — remove exposed populations; repeat every few days","Isopropyl alcohol (70%) on a cotton swab — dab individual mealybugs; test on small area first for phytotoxicity","Insecticidal soap or narrow-range horticultural oil — spray exposed populations; mealybugs waxy coat makes contact difficult","Inspect and discard heavily infested plants before buying — UC IPM: prevent introduction by purchasing pest-free plants","Manage ants — ants protect mealybugs from natural enemies; use sticky trunk bands","Preserve natural enemies — mealybug destroyer (Cryptolaemus montrouzieri) lady beetle and parasitic wasps provide good control outdoors"],
+    conventional:["UC IPM: Home and garden insecticides are not very effective for mealybugs, especially on larger plants; waxy coat repels most contact insecticides","Systemic imidacloprid soil drench — as of Jan 2025, restricted to licensed applicators in CA for outdoor use; do NOT apply to plants in bloom"],
+    ipm:"UC IPM: Nonchemical methods usually provide sufficient control for outdoor plantings. Naturally occurring predators and parasites provide good control of many species unless disrupted by broad-spectrum insecticides. Manage ants. Avoid over-applying nitrogen fertilizer — excess nitrogen stimulates new growth where mealybugs prefer to lay eggs. Zone 9b mild winters allow year-round populations on citrus and ornamentals." },
+
+  { name:"Psyllids", emoji:"🟡", type:"insect", season:"Spring–Summer (most species); Asian citrus psyllid year-round",
+    source:"UC IPM Pest Notes: Psyllids (updated 2021); Asian Citrus Psyllid (updated Sept 2018)",
+    url:"https://ipm.ucanr.edu/PMG/PESTNOTES/pn7423.html",
+    damage:"Leaf pitting, curling, or distortion. Sticky honeydew and sooty mold. Some species vector serious plant diseases (Asian citrus psyllid vectors Huanglongbing/citrus greening — a fatal citrus disease).",
+    symptoms:["pitted leaves","curled leaves","honeydew","sooty mold","sticky citrus","yellowing citrus","psyllid"],
+    organic:["Manage ants — UC IPM: ants protect Asian citrus psyllid (ACP) from natural enemies; Argentine ant control is especially critical","Preserve parasitic wasp Tamarixia radiata — released in CA for ACP biocontrol; avoid broad-spectrum insecticides","Regular shearing of terminals — reduces eugenia psyllid abundance; only way to remove damaged foliage","Reflective mulch — reduces psyllid colonization on young plants"],
+    conventional:["Asian citrus psyllid: systemic imidacloprid soil drench during summer or early fall (not during or near bloom) — restricted to licensed applicators in CA as of Jan 2025","CDFA may apply insecticides to residential citrus in known ACP infestation areas — contact CDFA Exotic Pest Hotline: 1-800-491-1899 if you suspect ACP"],
+    ipm:"UC IPM: Asian citrus psyllid is the most critical psyllid in Zone 9b — it vectors Huanglongbing (citrus greening disease), which is fatal to citrus and has no cure. If you find ACP on your citrus, report it immediately to CDFA at 1-800-491-1899. Argentine ant control is essential for ACP management. Most other psyllid species cause cosmetic damage only and do not require treatment." },
+
+  { name:"Leafhoppers", emoji:"🦗", type:"insect", season:"Spring–Fall (multiple generations)",
+    source:"UC IPM Pest Notes: Leafhoppers (Home and Landscape, updated 2021)",
+    url:"https://ipm.ucanr.edu/PMG/GARDEN/VEGES/PESTS/leafhopper.html",
+    damage:"Stippled (bleached specks) or overall pale/bleached leaves. Some species vector plant pathogens (aster yellows). Cast pale nymph skins stick to leaf surfaces. Shiny excrement may support sooty mold.",
+    symptoms:["stippled leaves","bleached leaves","pale speckling","bleaching","jumping insects","leafhoppers","aster yellows"],
+    organic:["No treatment usually needed — UC IPM: in most situations leafhoppers are just an annoyance and do not threaten plant survival","Reflective silver mulch — reduces leafhopper colonization on young seedlings","Row covers — exclude leafhoppers from seedbeds","Preserve natural enemies — assassin bugs, lacewings, lady beetles, and Anagrus parasitic wasps attack leafhoppers"],
+    conventional:["UC IPM: Insecticide application is generally not effective for preventing plant diseases vectored by leafhoppers — they can transmit the pathogen before the insecticide kills them; rarely warranted in home gardens"],
+    ipm:"UC IPM: Leafhoppers have many natural enemies and most populations are adequately controlled without intervention. Before treating, confirm leafhoppers are present by looking on leaf undersides — they walk rapidly sideways or jump when disturbed. Stippled leaves are also caused by spider mites and thrips, so identify the actual pest first. Zone 9b: glassy-winged sharpshooter can vector Pierce's disease in grapes." },
+
+  { name:"Cutworms & Armyworms", emoji:"🪱", type:"insect", season:"Spring–Fall (caterpillars active at night)",
+    source:"UC IPM Pest Notes: Lawn Insects; Caterpillars (updated Aug 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/lawn-insects/",
+    damage:"Seedlings cut off at soil level overnight. Irregular bare patches in lawns. Fruit and foliage damage from climbing species. Cutworms hide in soil by day.",
+    symptoms:["seedlings cut at base","seedlings toppled","bare patches lawn","overnight seedling loss","cutworm","armyworm"],
+    organic:["Bt (Bacillus thuringiensis) — effective on young larvae; must be ingested; apply in evening when caterpillars are active","Spinosad — UC IPM: effective on cutworms and armyworms; least toxic option","Beneficial nematodes (Steinernema carpocapsae) — soil drench targets soil-dwelling cutworms","Drench test to confirm presence — mix 1-2 tbsp dish soap per gallon water, apply to 1 sq yd; count caterpillars surfacing in 10 min; treat only if over 5 per sq yd (lawn)","Cardboard collars around seedling stems — 2-3 inch collar pushed 1 inch into soil prevents cutworm damage"],
+    conventional:["Azadirachtin (neem-based) — controls cutworms and armyworms on lawns and garden beds","UC IPM advises AGAINST carbaryl* and pyrethroids (bifenthrin) — broadly toxic to beneficial insects and pollute waterways; *carbaryl restricted use in CA as of Aug 2020"],
+    ipm:"UC IPM: Cutworms hide in soil during day and feed at night — confirm their presence with a soap drench before treating. Armyworms move in groups and can devastate lawns quickly. Bt and spinosad are the least-toxic effective options. Check for caterpillars at dusk by flashlight near damaged plants. Zone 9b: fall armyworm can be severe in warm years." },
+
+  { name:"Gophers", emoji:"🦔", type:"vertebrate", season:"Year-round (most active spring and fall)",
+    source:"UC IPM Pest Notes: Pocket Gophers (updated Mar 2023)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/pocket-gophers/",
+    damage:"Fan-shaped mounds of fresh soil with plugged hole offset to one side. Plants wilt or collapse as roots are consumed. Underground damage to irrigation lines and bulbs.",
+    symptoms:["fan shaped mounds","fresh soil mounds","plants wilting for no reason","collapsed plants","underground damage","gopher mounds","roots eaten"],
+    organic:["Trapping — UC IPM: the most effective and practical control method; use Macabee or Gophinator pincer traps; place two traps per main tunnel facing opposite directions; cover to exclude light","Locate main tunnel by probing 6-12 inches from fresh mound at a 45-degree angle; feel for the drop when you hit the tunnel","Hardware cloth baskets — line planting holes with 1/2-inch mesh for bulbs and transplants; extend above soil line","Underground wire barriers — 1/2-inch hardware cloth 2 feet deep for garden beds; costly but permanent"],
+    conventional:["Strychnine or zinc phosphide underground bait — place directly in main tunnel; highly toxic; follow label carefully","Carbon monoxide (Gopher Gasser) — fumigant cartridges placed in tunnel; limited effectiveness in dry soils"],
+    ipm:"UC IPM: Trapping is preferred over baiting — more reliable and avoids non-target hazards. A single gopher may create multiple mounds in a small area. Zone 9b: Botta's pocket gopher is the primary species in Contra Costa County. Active year-round but most active in spring and fall when soil is moist and plant growth is rapid. Check traps morning and evening for best results." },
+
+  { name:"Peach Leaf Curl", emoji:"🍑", type:"disease", season:"Spring (infection occurs fall–winter; symptoms appear spring)",
+    source:"UC IPM Pest Notes: Peach Leaf Curl (updated May 2012)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/peach-leaf-curl/",
+    damage:"New leaves and shoots redden, thicken, pucker, and curl in spring. Leaves may yellow, develop powdery gray spores, then drop. Affects peach and nectarine only.",
+    symptoms:["red puckered leaves","curled leaves peach","thickened leaves","red blisters leaves","spring leaf distortion","peach leaves curling"],
+    organic:["Copper soap (copper octanoate) or fixed copper fungicide — UC IPM: least toxic effective option; apply in late fall after leaves drop but BEFORE spring buds develop; treating after symptoms appear is ineffective","Add 1% horticultural oil to copper spray — UC IPM recommends this to increase effectiveness; horticultural oil alone does not control peach leaf curl","Chlorothalonil — alternate with copper to prevent copper buildup in soil","Plant resistant varieties — Frost, Indian Free, Muir, and Q-1-8 peaches show good resistance"],
+    conventional:["Chlorothalonil — effective contact fungicide; can alternate with copper","Propiconazole — systemic fungicide; effective preventive"],
+    ipm:"UC IPM: Timing is everything with peach leaf curl — the only effective window is late fall or winter dormancy (after leaf drop, before bud swell). A single annual application is usually sufficient. If you miss the window, a second set of normal leaves will replace fallen ones after weather warms, and the tree will look fine — but infection for next year is already underway. Zone 9b: apply copper in Nov-Dec after first rains but before bud swell (typically Jan-Feb)." },
+
+  { name:"Fire Blight", emoji:"🔥", type:"disease", season:"Spring (bloom period is primary infection window)",
+    source:"UC IPM Pest Notes: Fire Blight (updated Jul 2011)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/fire-blight/",
+    damage:"Blossoms, shoots, and young fruit shrivel and turn black or brown as if scorched. Shepherd's crook shape on wilted shoot tips. Bacterial ooze on cankers. Affects apple, pear, quince, pyracantha, and relatives.",
+    symptoms:["blackened shoots","blossoms turning black","shepherd's crook","wilted shoot tips","brown scorched shoots","bacterial ooze","fireblight"],
+    organic:["Prune out infected shoots 8-12 inches below visible infection — disinfect tools between cuts with 10% bleach or 70% alcohol; do NOT prune during wet weather (spreads bacteria)","Do NOT irrigate during bloom — UC IPM: water droplets spread the bacterium Erwinia amylovora to flowers","Copper bactericide at bloom — apply at 10-25% bloom and again at full bloom during wet spring weather; limited effectiveness but reduces inoculum","Plant resistant varieties — select apple and pear varieties rated resistant to fire blight"],
+    conventional:["Streptomycin (Agri-Strep) — antibiotic bactericide; apply at bloom during infection periods (above 60F with rain or heavy dew); restricted to licensed applicators in CA","Copper bactericide — less effective than streptomycin but available for home use"],
+    ipm:"UC IPM: Fire blight spreads rapidly during bloom when temperatures exceed 60F and moisture is present. Bees and other pollinators move the bacteria from flower to flower. Once inside the tree, the bacteria move through vascular tissue and cannot be removed with fungicide — only pruning helps. Pear and quince are extremely susceptible; avoid these if fire blight is common in your area. Zone 9b spring rains during bloom create high-risk conditions." },
+
+  { name:"Ants", emoji:"🐜", type:"insect", season:"Year-round (most active spring–fall)",
+    source:"UC IPM Pest Notes: Ants (updated Aug 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/ants/",
+    damage:"Invade homes seeking food and water. Farm honeydew-producing insects (aphids, scales, mealybugs), disrupting biological control. Southern fire ant stings. Red imported fire ant (Southern CA) — report if found.",
+    symptoms:["ants in garden","ants on plants","ants farming aphids","ant trails","ant mounds","ants indoors"],
+    organic:["Sticky trunk barriers (Tanglefoot) — band trunks to prevent ants from reaching honeydew-producing insects in tree canopy","Slow-acting borate bait stations — liquid 0.5-1% borate in sugar water; UC IPM recommends for severe Argentine ant infestations; ants carry bait back to colony","Caulk entry points — seal cracks around doors, windows, pipes to prevent indoor entry","Remove food and water sources — sealed containers, clean spills, fix leaks","Cultivate soil around nest — disrupts colonies near garden beds"],
+    conventional:["Fipronil, avermectin, or hydramethylnon bait stations — slow-acting; workers carry back to colony to kill queens; UC IPM recommends baits over sprays","UC IPM advises AGAINST pyrethroid perimeter sprays (bifenthrin, cypermethrin) outdoors — pollute waterways, kill natural enemies, only temporary control"],
+    ipm:"UC IPM (updated Aug 2024): Argentine ant is the most common garden pest ant in California — it is invasive and very difficult to eliminate. Focus on keeping ants out of plants using trunk barriers, not on eliminating colonies. Where ants are controlled, populations of aphids, mealybugs, and scales often decline as natural enemies recover. Fire ants in Southern CA: report suspected infestations to your county agricultural commissioner." },
+
+  { name:"Lace Bugs", emoji:"🪲", type:"insect", season:"Spring–Fall (multiple generations)",
+    source:"UC IPM Pest Notes: Lace Bugs (updated Mar 2014)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/lace-bugs/",
+    damage:"Stippled, bleached, or silvery upper leaf surface. Dark, shiny fecal spots on leaf undersides. Cast skins on undersides. Azaleas, pyracantha, oaks, and sycamores most affected.",
+    symptoms:["stippled leaves","bleached leaves","silvery leaves","dark spots under leaves","lace bug","azalea damage"],
+    organic:["Forceful water stream on leaf undersides — UC IPM recommends beginning early in season when nymphs predominate; repeat at intervals","Grow plants adapted to site — UC IPM: azalea and toyon suffer less lace bug damage when grown in partial shade vs. full sun","Insecticidal soap or narrow-range oil — spray undersides of leaves; choose nonpersistent contact products to protect natural enemies","Conserve natural enemies — parasitic wasps, assassin bugs, lacewing larvae, lady beetles, jumping spiders, pirate bugs, and mites all prey on lace bugs"],
+    conventional:["Imidacloprid soil drench — systemic; as of Jan 2025 restricted to licensed applicators in CA for outdoor use; avoid near blooming plants","Acephate foliar spray — systemic; nonfood ornamental plants only"],
+    ipm:"UC IPM (Mar 2014): Take action when nymphs become abundant and before damage is extensive. Lace bug damage (bleached leaves with dark fecal spots on undersides) can be confused with spider mite or greenhouse thrips damage — check undersides carefully. Growing shade-adapted shrubs in appropriate light is the most effective long-term prevention. Consider replacing repeatedly damaged plants with resistant species. Natural enemies provide important control — preserve them." },
+
+  { name:"Whitefly (Giant)", emoji:"🤍", type:"insect", season:"Year-round in mild climates",
+    source:"UC IPM Pest Notes: Giant Whitefly (updated June 2021)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/giant-whitefly/",
+    damage:"Long, white, waxy filaments hanging from leaf undersides (distinctive). Honeydew, sooty mold. Primarily on giant bird of paradise, banana, hibiscus, xylosma, and mulberry.",
+    symptoms:["white filaments hanging","long white strings leaves","waxy strings","giant whitefly","banana leaf damage","bird of paradise damage"],
+    organic:["Forceful water spray — remove wax filaments and nymphs from leaf undersides; repeat every 2-3 weeks","Remove heavily infested leaves — reduces population and removes waxy protection","Reflective mulch — deters adults from landing on plants","Parasitic wasps (Encarsia and Eretmocerus) — naturally occurring; conserve by avoiding broad-spectrum insecticides"],
+    conventional:["UC IPM: Chemical control is generally not recommended for giant whitefly — insecticides are not very effective due to the waxy coating and hidden nymphs; biological control is the primary management tool"],
+    ipm:"UC IPM: Giant whitefly is identified by its distinctive long white wax filaments hanging like a curtain from leaf undersides — unlike common whitefly which has no filaments. Parasitic wasps provide good biological control if not disrupted. Zone 9b mild winters allow year-round populations. Focus on conserving natural enemies rather than spraying." },
+
+  { name:"Tree Borers", emoji:"🌳", type:"insect", season:"Adults emerge spring–summer; larvae active year-round",
+    source:"UC IPM Pest Notes: Tree Borers (updated June 2023)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/tree-borers/",
+    damage:"Sawdust-like frass at entry holes, oozing pitch or sap on bark, branch dieback, bark cracking and peeling, weak or dead branches. Commonly attacks stressed or drought-weakened trees.",
+    symptoms:["sawdust at trunk","holes in bark","pitch tubes","sap oozing bark","branch dieback","bark peeling","frass trunk"],
+    organic:["Maintain tree vigor — UC IPM: most borers attack stressed trees; proper watering and fertilization is the primary prevention","Avoid mechanical injury — mower and string trimmer wounds are primary entry points for flatheaded borers","Remove and dispose of severely infested branches — do not leave infested wood on site","Avoid pruning during adult flight periods — prune oaks only Nov-Feb to avoid attracting certain beetles"],
+    conventional:["Preventive pyrethroid bark sprays — apply to trunk and major scaffold branches before adult flight season; must be applied before infestation, not after","UC IPM: insecticides are ineffective once larvae are inside the wood — prevention and tree health are the only reliable controls"],
+    ipm:"UC IPM: Borers are almost always secondary pests — they attack trees that are already stressed by drought, disease, mechanical injury, or poor planting. A healthy tree in appropriate conditions rarely succumbs to borers. Zone 9b: flatheaded apple tree borer attacks many ornamental and fruit trees; gold-spotted oak borer is an invasive threat to oaks — report unusual oak decline to your county ag commissioner." },
+
+  { name:"Moles", emoji:"⛏️", type:"vertebrate", season:"Year-round (most active when soil is moist)",
+    source:"UC IPM Pest Notes: Moles (updated Nov 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/moles/",
+    damage:"Raised, winding surface tunnels in lawns and garden beds. Circular, symmetric mounds of loose soil. Roots disrupted by tunneling. Plants lifted and uprooted. Moles do NOT eat plant roots — they eat earthworms and grubs.",
+    symptoms:["raised ridges lawn","surface tunnels","circular mounds","raised runways","mole mounds","uprooted plants"],
+    organic:["Trapping — UC IPM: the most dependable control method; use scissor-jaw or harpoon traps in active main tunnels; locate by probing near fresh mounds","Identify active tunnels — press down a section and mark it; active tunnels are repaired within 24-48 hours","Remove grubs from lawn — reduces mole food source; use beneficial nematodes or milky spore for grub control","Physical barriers — bury 1/4-inch hardware cloth 2 feet deep around valuable garden areas"],
+    conventional:["Bromethalin bait (Talpirid) — worm-shaped bait placed in active tunnel; follow label; UC IPM notes effectiveness varies","Zinc phosphide bait — place in active main tunnels; toxic to non-targets if exposed"],
+    ipm:"UC IPM (updated Nov 2024): Moles are insectivores — they eat earthworms, grubs, and insects, not plant roots. Raised ridges distinguish moles from gophers (fan-shaped mounds with no ridge). One mole can create an extensive tunnel system and multiple mounds in a small area. Zone 9b: Townsend mole (Scapanus townsendii) is common in moist, rich soils of Contra Costa County. Most active after rain when earthworms are near surface." },
+
+  { name:"Deer", emoji:"🦌", type:"vertebrate", season:"Year-round (worse fall–spring when other food is scarce)",
+    source:"UC IPM Pest Notes: Deer (updated Apr 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/deer/",
+    damage:"Ragged, torn browse on shrubs and young trees. Bark scraped or stripped by bucks rubbing antlers (fall). Tracks and droppings. Damage occurs primarily at night or early morning.",
+    symptoms:["ragged torn plants","stripped bark","antler rubs","deer tracks","deer droppings","browsed shrubs","nighttime plant damage"],
+    organic:["Fencing — UC IPM: the most effective long-term control; 8-foot fence for standard deer; angled 7-foot fence can work if space allows; electric fencing effective for orchards","Tree tubes and plant cages — protect individual trees and shrubs until established","Deer-resistant plants — choose plants deer tend to avoid; no plant is fully deer-proof when deer are hungry","Repellent sprays — products containing putrescent egg solids, capsaicin, or predator urine; must be reapplied after rain and as plants grow; limited effectiveness long-term","Motion-activated sprinklers — effective short-term deterrent"],
+    conventional:["No lethal control available without CDFW depredation permit; shooting is rarely a practical solution for residential gardens"],
+    ipm:"UC IPM: Deer are most destructive to young trees and new plantings — once woody plants are established, deer damage is usually tolerable. Exclusion fencing is the only reliable long-term solution. Repellents require consistent reapplication to be effective. Zone 9b: black-tailed deer (Odocoileus hemionus columbianus) are the primary species in Contra Costa County, common in hillside neighborhoods near open space." },
+
+  { name:"Armillaria Root Rot (Oak Root Fungus)", emoji:"🍄", type:"disease", season:"Symptoms appear any time; infection occurs when roots contact infested wood",
+    source:"UC IPM Pest Notes: Armillaria Root Rot (updated Jan 2020)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/armillaria-root-rot/",
+    damage:"Slow decline then sudden death of trees and woody plants. White to yellowish fan-shaped mycelial mats between bark and wood at crown. Dark shoestring-like rhizomorphs on roots. Honey-colored mushrooms at base in fall after rains.",
+    symptoms:["tree decline","sudden death tree","white mats under bark","mushrooms at base tree","shoestring roots","slow decline shrubs","armillaria","oak root fungus"],
+    organic:["Crown exposure — UC IPM: excavate soil from around trunk base 9-12 inches deep down to first lateral roots; keep crown dry; may arrest progression if caught early","Remove infected plants and as many large roots as possible — the fungus survives in dead roots in the soil for decades","Choose resistant plants — some species and rootstocks show more resistance; consult UC IPM plant lists","Avoid excessive irrigation — wet soils accelerate disease; especially critical for plants in former oak woodland sites"],
+    conventional:["No effective chemical treatment once established — UC IPM: currently available fumigants cannot adequately control Armillaria in established landscapes","Fosetyl-Al (Aliette) — some evidence of slowing progression; not curative"],
+    ipm:"UC IPM: Armillaria mellea (oak root fungus) is native to California soils and persists in dead roots for many years — gardens established on former oak woodland or orchard land are at high risk. Zone 9b: the East Bay hills and Diablo Range foothills are endemic areas. The fungus has no specificity for oaks despite its name — it attacks a wide range of woody plants. Once infected, most plants cannot be saved; prevention through site assessment and resistant plant selection is key." },
+
+  { name:"Anthracnose", emoji:"🌿", type:"disease", season:"Spring (cool, wet weather during leaf emergence)",
+    source:"UC IPM Pest Notes: Anthracnose (updated May 2020)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/anthracnose/",
+    damage:"Brown, irregular dead areas on leaves and shoots. Distorted or blighted new shoots in spring. Premature leaf drop. Most common on sycamore, oak, ash, and liquidambar in cool wet springs.",
+    symptoms:["brown blotches leaves","dead leaf areas","blighted shoots spring","premature leaf drop","brown spots sycamore","irregular brown patches"],
+    organic:["Rake and dispose of fallen leaves — reduces spore load for next season; do not compost","Improve air circulation — prune for airflow through canopy","Avoid overhead irrigation — splashing water spreads spores","Copper fungicide — preventive spray at bud break if anthracnose has been severe in prior years"],
+    conventional:["Propiconazole or thiophanate-methyl — apply at early bud break as protective spray; must be timed before infection","UC IPM: fungicide applications are rarely warranted on established landscape trees — most trees recover and put out a second flush of leaves"],
+    ipm:"UC IPM: Anthracnose looks alarming but rarely kills established trees. A second flush of healthy leaves typically emerges after spring weather warms and dries. Sycamores are heavily affected in wet Zone 9b springs but almost always recover fully. Treatment is generally not needed or cost-effective on large trees. Young trees in their first few years are more vulnerable." },
+
+  { name:"Rabbits", emoji:"🐇", type:"vertebrate", season:"Year-round (worse spring when populations peak)",
+    source:"UC IPM Pest Notes: Rabbits (updated Aug 2022)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/rabbits/",
+    damage:"Clean, angled cuts on young stems and bark (45-degree angle, unlike deer which tear ragged). Seedlings clipped at ground level. Bark gnawed at base of young trees in winter. Droppings are small, round, and numerous.",
+    symptoms:["clean cut stems","angled cuts stems","seedlings clipped","bark gnawed base","rabbit droppings","stems cut 45 degrees"],
+    organic:["Hardware cloth cylinders — UC IPM: most effective protection; 1-inch mesh, 18-24 inches tall, buried 2-3 inches; protect young tree trunks","Chicken wire or welded wire fencing — 2-foot height minimum; bottom buried or staked flush with soil to prevent burrowing under","Repellent sprays — products with putrescent egg solids or capsaicin; must be reapplied after rain; limited effectiveness","Remove brush piles and dense cover near garden — eliminates hiding spots and reduces local population"],
+    conventional:["Live trapping — relocate per local regulations; check Contra Costa County rules","Shooting — legal in unincorporated areas with proper permits; not practical in residential settings"],
+    ipm:"UC IPM: Jackrabbits and cottontails are the two common species in Zone 9b. Cottontails tend to stay in brushy cover near gardens; jackrabbits range more widely. The 45-degree clean cut is the diagnostic sign — deer leave ragged tears. Hardware cloth cylinders are the most reliable protection for young trees. Rabbits rarely require lethal control in home gardens when exclusion is properly implemented." },
+
+  { name:"Lygus Bugs (Plant Bugs)", emoji:"🐛", type:"insect", season:"Spring–Fall",
+    source:"UC IPM Pest Notes: Lygus Bugs / True Bugs (home and landscape)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/lygus-bugs/",
+    damage:"Distorted, puckered, or stippled leaves. Blackened shoot tips. Deformed fruit and seeds. Cat-faced scarring on tomatoes and strawberries. Both adults and nymphs feed.",
+    symptoms:["distorted leaves","puckered leaves","black shoot tips","deformed fruit","cat-faced tomato","stippled new growth","lygus bug"],
+    organic:["Remove weeds — many weeds are preferred hosts; weed management reduces populations moving into garden","Row covers — exclude lygus bugs from vulnerable crops during critical growth periods","Sticky yellow traps — monitor adult populations","Hand-pick adults — most active in early morning when cool; drop into soapy water"],
+    conventional:["Pyrethrin — fast knockdown; apply at dusk to protect bees; short residual","Malathion — effective but kills natural enemies; use sparingly; avoid on food crops near harvest"],
+    ipm:"UC IPM: Lygus bugs and stink bugs can cause virtually the same damage — positive ID requires observing the bugs feeding. Most true bugs including lygus bugs do not cause serious harm to established plants. UC IPM notes spraying for these bugs is generally not recommended; oils or soaps may be used with good coverage. Focus on weed management to reduce populations. Zone 9b: most active spring and early summer." },
+
+  { name:"Brown Rot (Stone Fruit)", emoji:"🍑", type:"disease", season:"Bloom (blossom blight) and fruit ripening (summer)",
+    source:"UC IPM: Brown Rot of Stone Fruit (home and landscape garden guidelines)",
+    url:"https://ipm.ucanr.edu/PMG/GARDEN/FRUIT/DISEASE/aprbrownrot.html",
+    damage:"Blossoms wither and die with tan spore tufts. Velvety gray-brown spots spread rapidly over ripening fruit. Infected fruit mummify and cling to tree. Gum droplets at base of infected flowers and twigs. Affects peach, nectarine, apricot, plum, cherry, almond.",
+    symptoms:["rotting fruit","brown spots fruit","fuzzy gray fruit","mummified fruit","blossoms dying","gum on twigs","stone fruit rot"],
+    organic:["Remove and destroy all mummified fruit — UC IPM: mummies on and under tree are the primary inoculum source; remove before bud swell","Prune for good air circulation — reduces humidity that favors brown rot","Use drip or furrow irrigation — avoid wetting blossoms, foliage, and fruit","Copper fungicide at pink bud stage — preventive; do NOT apply copper after bloom","Harvest early and refrigerate — if rot is developing, pick fruit early to prevent total loss; handle carefully to avoid wounds"],
+    conventional:["Myclobutanil (Immunox) — systemic triazole; apply at pink bud and again at fruit coloring if wet weather persists","Propiconazole — very effective; apply preventively at bloom in wet years"],
+    ipm:"UC IPM: Brown rot fungi survive in diseased flowers and shoots and old mummified fruit on the tree or ground. Spores spread by wind and splashing water during bloom. Water must be present on flower surface for infection — avoid wetting blossoms with irrigation. Fruit are most susceptible when ripe. Sanitation (removing mummies and infected plant parts) is the single most effective management practice. Prune trees to allow good ventilation. Drip irrigate or furrow irrigate to avoid wetting foliage and fruit. Zone 9b spring rains during bloom create high infection risk." },
+
+  { name:"Citrus Leafminer", emoji:"🍊", type:"insect", season:"Mid-summer through fall and early winter",
+    source:"UC IPM Pest Notes: Citrus Leafminer (Publication 74137)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/citrus-leafminer/pest-notes/",
+    damage:"Serpentine silvery mines (tunnels) in new citrus leaves. Leaves curl and distort as larvae pupate in rolled leaf edges. Shiny frass trail visible inside mine. Affects oranges, mandarins, lemons, limes, grapefruit, kumquat.",
+    symptoms:["silvery tunnels leaves","serpentine mines","curled citrus leaves","distorted new growth citrus","leafminer citrus","mines in leaves"],
+    organic:["No treatment needed on mature trees (4+ years) — UC IPM: mature citrus tolerates leafminer damage without effect on tree growth or fruit yield","Avoid unnecessary pruning — pruning stimulates new flush that attracts the moth; prune only once per year","Conserve parasitic wasps — Ageniaspis citricola provides good biological control; avoid broad-spectrum insecticides","Kaolin clay — particle film on new flush deters egg-laying moths; requires thorough coverage"],
+    conventional:["Spinosad — limited to 6 applications per season; apply to new flush when mines first appear on young trees only","UC IPM: insecticides are generally not needed for mature citrus; treat only young trees (under 4 years) where growth retardation is a concern"],
+    ipm:"UC IPM: Citrus leafminer arrived in California in 2000 and is now established statewide. Despite its alarming appearance, it rarely causes serious damage on mature backyard citrus. Young trees are more vulnerable. Parasitic wasps provide good biological control worldwide. Zone 9b: most active mid-summer through fall when citrus flushes new growth." },
+
+  { name:"Olive Fruit Fly", emoji:"🫒", type:"insect", season:"Summer–fall (fruit development period)",
+    source:"UC IPM Pest Notes: Olive Fruit Fly (Publication 74112)",
+    url:"https://ipm.ucanr.edu/PMG/PESTNOTES/pn74112.html",
+    damage:"Maggots (larvae) feed inside olive fruit, destroying pulp. Premature fruit drop. Exit holes in fruit surface. Secondary bacteria and fungi rot infested fruit. Even a few infested fruit can ruin table olives; oil olives more tolerant if harvested promptly.",
+    symptoms:["maggots in olives","wormy olives","premature olive drop","exit holes olive","rotten olives","olive fruit damage"],
+    organic:["Kaolin clay (Surround) — spray on developing fruit to deter adult flies from laying eggs; reapply after rain","Protein bait traps (GF-120) — spinosad-based attractant bait; apply as small spots on foliage near fruit; UC IPM-recommended for backyard trees","Harvest early — harvest as soon as fruit reaches maturity; process infested fruit quickly to prevent oil quality degradation","Remove fallen fruit — prevents larvae from completing development in dropped olives"],
+    conventional:["Spinosad protein bait (GF-120 NF Naturalyte) — most effective home garden treatment; apply as bait spots, not full coverage spray","Malathion — foliar spray; short residual; observe pre-harvest interval carefully"],
+    ipm:"UC IPM: Olive fruit fly (Bactrocera oleae) first detected in California in 1998 and now occurs in all olive-growing areas of the state. It is the most devastating pest of olives worldwide. Ornamental fruitless olive varieties are not affected. Zone 9b: Contra Costa County has established populations. If you grow olives for curing or oil, protein bait traps starting in summer are essential. Monitor fruit weekly from July onward." },
+
+  { name:"Verticillium Wilt", emoji:"🥀", type:"disease", season:"Spring–summer (symptoms triggered by heat and water stress)",
+    source:"UC IPM: Verticillium Wilt (home and landscape garden guidelines)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/verticillium-wilt/",
+    damage:"Sudden wilting and yellowing of one or more branches or one side of plant. Brown or olive-colored streaking of vascular tissue when branch is cut. Affects strawberries, tomatoes, eggplant, peppers, and many woody ornamentals (maple, ash, olive, liquidambar).",
+    symptoms:["one sided wilting","branch dieback","yellowing branches","vascular streaking","wilting maple","strawberry decline","verticillium"],
+    organic:["Plant resistant varieties — look for V designation on tomato tags (Fusarium, Nematode, Verticillium resistant)","Soil solarization — clear plastic over moist soil in summer; UC IPM recommends 4-6 weeks followed by at least 1 year fallow before replanting","Remove and dispose of infected plants — do not compost","Avoid replanting susceptible species in infected soil — pathogen persists for years","Crop rotation — minimum 3-4 years away from susceptible crops"],
+    conventional:["No effective chemical treatment once established — UC IPM: no fungicides are reliably effective against Verticillium in landscape situations","Soil fumigation — possible before planting in severely infested sites; professional application required"],
+    ipm:"UC IPM: Where Verticillium wilt has been a problem, plant only resistant species because the pathogen persists in soil. Look for FNV designation on plant labels (F=Fusarium resistant, N=Nematode resistant, V=Verticillium resistant). Soil solarization during summer then keeping the site plant-free for at least 1 year can help reduce pathogen inoculum. Symptoms of Fusarium wilt and Verticillium wilt can be indistinguishable — lab culture may be needed for positive ID. Hosts include ash, camphor, Chinese pistache, elm, fruit trees, liquidambar, maple, olive, and many ornamentals." },
+
+  { name:"Root Knot Nematodes", emoji:"🌱", type:"disease", season:"Year-round (worst in warm, sandy soils summer–fall)",
+    source:"UC IPM Pest Notes: Nematodes (Publication 7489)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/nematodes/",
+    damage:"Stunted, yellowing plants that wilt despite adequate water. Swollen galls or knots on roots. Poor yield. Worst in warm, sandy or loamy soils. Affects wide range of vegetables, fruit trees, and ornamentals.",
+    symptoms:["stunted plants","yellowing plants","root galls","knots on roots","poor growth","wilting sandy soil","nematodes"],
+    organic:["Soil solarization — UC IPM: most effective organic management; clear plastic over moist soil for 4-6 weeks in summer; reduces populations significantly in top 12 inches","Plant resistant varieties — Nemaguard rootstock for stone fruits; VFN tomatoes; resistant varieties listed in UC IPM nematode pest note","Crop rotation — rotate with non-host crops (corn, small grains, marigolds) for 1-2 seasons","Incorporate organic matter — improves soil biology; stimulates beneficial nematode-destroying fungi","Marigolds (Tagetes species) — dense planting as cover crop suppresses some nematode species"],
+    conventional:["No soil fumigants currently registered for home garden use in CA — UC IPM: chemical control is not practical for most home gardeners","Oxamyl (Vydate) — systemic nematicide for some vegetable crops; licensed applicator use"],
+    ipm:"UC IPM: Root knot nematodes are the most damaging nematodes to gardens — they attack a wide range of vegetables, fruit trees, and ornamentals. They spread easily on tools, boots, and infested transplants. Zone 9b warm, irrigated, coarse-textured soils (sand, sandy loam) are most susceptible. Nemaguard rootstock for stone fruits, and Harmony/Freedom rootstock for grapes provide resistance. Do not confuse root galls with nitrogen-fixing nodules on legumes — nodules detach easily, galls do not. UC Cooperative Extension offers soil nematode testing." },
+
+  { name:"Spittlebugs", emoji:"💦", type:"insect", season:"Spring (nymphs); adults present summer–fall",
+    source:"UC IPM: Spittlebugs (home and landscape, adapted from Pests of Landscape Trees and Shrubs)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/spittlebugs/",
+    damage:"Frothy white foam (spittle mass) on stems, usually in spring. Nymphs feed inside spittle on xylem fluid. Rarely causes serious plant damage — mostly cosmetic. Common on rosemary, lavender, clover, and many other plants.",
+    symptoms:["white foam stems","frothy white mass","spittle on plants","white bubbles stems","rosemary white foam"],
+    organic:["Strong water spray — wash spittle masses and nymphs off plants; most effective control","Cut infested weeds in spring — UC IPM: spittlebugs migrate from weeds to woody plants; remove weed hosts before insects mature","Ignore them — UC IPM explicitly recommends ignoring spittlebugs on established plants; damage is rarely significant"],
+    conventional:["UC IPM: Pesticides are not recommended for spittlebugs — damage is cosmetic and populations are self-limiting"],
+    ipm:"UC IPM: Ignore spittlebugs or wash nymphs off with a forceful stream of water — this is UC IPM's explicit recommendation. Spittlebugs are more likely to become abundant on woody plants when they migrate from nearby herbaceous hosts. Cut spittlebug-infested weeds in spring before insects mature and spread. Only about a half dozen species of spittlebug occur in California. Pesticides are not recommended." },
+
+  { name:"Stink Bugs (& Bagrada Bug)", emoji:"🛡️", type:"insect", season:"Spring–Fall (Bagrada bug worst summer–fall)",
+    source:"UC IPM: Stink Bugs / True Bugs (home and landscape garden guidelines)",
+    url:"https://ipm.ucanr.edu/PMG/GARDEN/VEGES/PESTS/stinkbug.html",
+    damage:"Stink bugs: cat-faced scarring and dimpling on tomatoes, peppers, and stone fruit. Bagrada bug (invasive): wilting and stunting of brassica seedlings; star-shaped feeding scars. All stink bugs release foul odor when disturbed.",
+    symptoms:["cat faced tomato","dimpled fruit","scarred tomatoes","wilting brassica seedlings","star shaped scars","shield shaped bug","bagrada bug","stink bug"],
+    organic:["Hand-pick into soapy water — most effective in cool early morning when bugs are slow","Kaolin clay — particle film deters feeding on fruit","Row covers — exclude Bagrada bug from brassica seedlings; most critical at transplanting","Remove weeds and mustard plants — Bagrada bug breeds on weedy mustards; clean up before planting brassicas","Trap crops — plant sacrificial mustard or sweet alyssum away from main crop"],
+    conventional:["Pyrethrin — fast knockdown; apply at dusk to protect bees; short residual","Permethrin — more persistent; avoid applying to flowers"],
+    ipm:"UC IPM: Because lygus bugs can cause virtually the same damage as stink bugs, the particular cause may not be determined unless the bugs are observed feeding. Insecticides are generally not recommended for stink bugs in gardens — damage commonly does not become apparent until after plant tissues grow, by which time stink bugs may no longer be present. Bagrada bug (black and orange, invasive from Africa) is particularly damaging to brassica seedlings in Zone 9b — row covers at transplanting are essential. Preserve natural enemies by avoiding broad-spectrum persistent insecticides." },
+
+  { name:"Pillbugs & Sowbugs", emoji:"🐛", type:"insect", season:"Year-round (worse in moist conditions)",
+    source:"UC IPM Pest Notes: Pillbugs and Sowbugs (home and landscape)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/pillbugs-and-sowbugs/",
+    damage:"Chew fruit, succulent plant parts, seedlings, and vegetables touching damp soil. Feed primarily on decaying plant material. Can damage strawberries, seedlings, and low-growing vegetables.",
+    symptoms:["chewed seedlings","chewed strawberries","chewed fruit touching soil","holes in seedlings","pillbug","sowbug","roly poly","rolly polly"],
+    organic:["Reduce moisture and hiding spots — UC IPM: modify habitat to reduce favorable conditions; keep mulch, plants, and debris several inches back from foundations and plant crowns","Trap with boards or melon rinds — place flat boards near damaged plants; collect and destroy pillbugs hiding underneath each morning","Diatomaceous earth — apply dry barrier around seedlings; reapply after irrigation or rain","Iron phosphate bait (Sluggo Plus with spinosad) — effective on pillbugs and sowbugs as well as slugs and snails","Protect seedlings — use transplants rather than direct-seeding in heavily infested areas; transplants are less vulnerable","Reduce outdoor lighting — pillbugs and sowbugs are attracted to lights which draws them near plants and buildings"],
+    conventional:["Carbaryl bait — scatter around affected plants; follow label directions","Pyrethrin contact spray — temporary knockdown of exposed populations"],
+    ipm:"UC IPM: Pillbugs and sowbugs are not insects — they are crustaceans (related to crabs and shrimp) with seven pairs of legs. Pillbugs roll into a ball when disturbed; sowbugs cannot and will run away instead. They feed primarily on decaying organic matter and are mostly beneficial decomposers. Damage to growing plants is usually minor except on seedlings and fruit touching damp soil. They do not bite, sting, or transmit disease. Zone 9b: active year-round in moist areas; worst during rainy season Nov-Apr when soil stays moist." },
+
+  { name:"Leafminers (Vegetable)", emoji:"🌿", type:"insect", season:"Spring–Fall (multiple generations; life cycle 2-3 weeks in warm weather)",
+    source:"UC IPM: Vegetable Leafminers (home and landscape garden guidelines)",
+    url:"https://ipm.ucanr.edu/PMG/GARDEN/VEGES/PESTS/vegleafminers.html",
+    damage:"Serpentine (winding) whitish mines or large whitish blotches inside leaves. Small black fly adults make feeding punctures in leaves. Heavy infestation causes premature leaf drop. Affects tomatoes, peppers, beans, cole crops, lettuce, spinach, and many other vegetables.",
+    symptoms:["winding white lines leaves","serpentine mines","whitish tunnels leaves","blotchy white leaves","leaf mines","tiny flies on vegetables","leafminer"],
+    organic:["Conserve parasitic wasps — UC IPM: parasitic wasps in the Diglyphus genus often control leafminers; they are frequently killed by insecticides applied for other pests, causing secondary leafminer outbreaks","Clip off and remove older heavily infested leaves — reduces population; feasible on cole crops, lettuce, spinach","Protect seedlings with row cover or protective cloth — excludes adult flies from young vulnerable plants","Provide proper irrigation — keep plants vigorous; stressed plants are more susceptible","Plant resistant varieties where available"],
+    conventional:["UC IPM: Insecticides are not very effective for leafminer control — larvae are protected inside the leaf; insecticides that kill adult flies also kill parasitic wasps","Spinosad — moves short distances into leaf tissue; adding horticultural oil to spray mix increases efficacy; apply in evening to protect bees; do not apply to plants in bloom"],
+    ipm:"UC IPM: Leafminers rarely require treatment in home gardens. Natural enemies (particularly Diglyphus parasitic wasps) often provide adequate control if not disrupted by broad-spectrum insecticides. The most important management action is conserving these natural enemies. On seedlings with 5 or fewer true leaves, heavy infestation can be more damaging — clip infested leaves. Once plants have 6 or more leaves, they rarely suffer significant yield loss from leafminers regardless of numbers. Zone 9b: active spring through fall; life cycle as short as 2 weeks in warm weather." },
+
+  { name:"Lawn Insects", emoji:"🌱", type:"insect", season:"Varies by species; grubs worst fall; caterpillars spring–fall",
+    source:"UC IPM Pest Notes: Lawn Insects (updated Sept 2014)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/lawn-insects/",
+    damage:"Brown or dead patches in lawn. Spongy turf that pulls up easily (grubs). Ragged chewed grass blades (caterpillars, armyworms). Insect-damaged turf often also attracts skunks, raccoons, and birds digging for grubs.",
+    symptoms:["brown patches lawn","dead lawn areas","spongy turf","lawn pulling up","grubs in soil","caterpillars in grass","lawn damage"],
+    organic:["Confirm insects are present first — UC IPM: insects are NOT a common cause of lawn damage in California; poor watering, disease, dog urine, or wrong grass type are more likely causes","Soap drench test — mix 2 tbsp dish soap per gallon of water; apply to 1 sq yd; count insects surfacing in 10 minutes; treat only if problem insects exceed threshold","For grubs: dig around roots and count; UC IPM says do NOT treat if there are 5 or fewer grubs per square foot","Beneficial nematodes (Heterorhabditis bacteriophora) — soil drench for white grub control; apply in fall when grubs are young","Bt (Bacillus thuringiensis) — effective on caterpillar species (sod webworm, armyworms) feeding in lawn","Aerate and dethatch — remove thatch exceeding 1/2 inch; insects thrive in thick thatch","Irrigate deeply and infrequently — proper irrigation creates less favorable conditions for many lawn insects"],
+    conventional:["UC IPM: Never apply an insecticide unless a damaging level of a known insect is confirmed; insecticides only effective at right time and in right manner; many insecticides kill beneficial insects","Imidacloprid — systemic grub control; apply before adults lay eggs (spring); as of Jan 2025 restricted to licensed applicators in CA for outdoor use","Chlorpyrifos — banned for home use in CA; do not use"],
+    ipm:"UC IPM (Sept 2014): Contrary to popular belief, insects are NOT a common cause of lawn damage in California. Confirm insects are present at damaging levels before treating. Insects that may damage California lawns include: root-feeding caterpillars, white grubs (masked chafer larvae), billbugs, crane fly larvae, sod webworms, and chinch bugs. Vertebrate predators (skunks, raccoons, birds) digging in turf often indicate grub infestation below. Keep lawn healthy — proper watering, mowing, fertilizing, and aeration prevent most insect problems without any pesticide." },
+
+  { name:"Powdery Mildew", emoji:"🍄", type:"disease", season:"Sept–Nov, Spring (warm days/cool nights)",
+    source:"UC IPM Pest Notes: Powdery Mildew (updated Aug 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/powdery-mildew/",
+    damage:"White powdery fungal growth on leaves and stems. Distorted or stunted growth. Premature leaf drop.",
+    symptoms:["white powder","white coating","powdery","white dusty","mildew","gray coating"],
+    organic:["Improve air circulation — prune for airflow; avoid overhead watering","Potassium bicarbonate — UC IPM-recommended contact fungicide for powdery mildew","Neem oil or horticultural oil — preventive and early curative use","Sulfur-based fungicide — effective preventive; do NOT apply above 90F or within 2 weeks of an oil application"],
+    conventional:["Myclobutanil (Immunox) — systemic triazole; very effective curative and preventive","Trifloxystrobin — broad-spectrum strobilurin; preventive use"],
+    ipm:"UC IPM: Powdery mildew fungi are host-specific — squash mildew won't spread to roses. Resistant varieties are the best long-term solution. Avoid overhead watering. Do not compost infected material. Zone 9b's warm dry days and cool nights in fall create ideal conditions." },
+
+  { name:"Botrytis / Gray Mold", emoji:"🩶", type:"disease", season:"Cool/humid weather (Nov–Apr, foggy spring)",
+    source:"UC IPM: Botrytis Blight or Gray Mold (home and landscape garden guidelines)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/botrytis-blight-or-gray-mold/",
+    damage:"Gray-brown fuzzy mold on flowers, fruit, and stems. Affected tissue collapses and rots.",
+    symptoms:["gray mold","grey mold","fuzzy mold","brown rot","flower rot","rotting","gray fuzz"],
+    organic:["Remove and destroy infected plant parts immediately — do not compost","Improve airflow — space plants; prune for circulation","Avoid overhead irrigation — water at base of plants","Copper-based fungicide — preventive spray in wet conditions"],
+    conventional:["Iprodione (Rovral) — targeted botrytis control; apply at first sign","Fenhexamid (Decree) — effective botrytis-specific fungicide"],
+    ipm:"UC IPM: Botrytis does not infect woody parts. Healthy, actively growing green plant parts are seldom infected directly — the fungus enters through dying flowers, dead or weakened tissue, then can invade adjacent healthy tissue. Gray mold is particularly troublesome under high humidity and moderate temperatures (70-77F). Zone 9b cool humid winters and foggy springs create ideal conditions. Weeds and plant debris are common spore sources — clean up thoroughly after harvest. For grapes: preventive fungicide at bloom if wet weather is forecast." },
+
+  { name:"Tomato Blight", emoji:"🫙", type:"disease", season:"Summer–Fall",
+    source:"UC IPM: Tomato diseases including early and late blight (garden guidelines)",
+    url:"https://ipm.ucanr.edu/PMG/GARDEN/VEGES/DISEASES/tomearlyblt.html",
+    damage:"Early blight: dark brown spots with yellow halos on lower leaves, spreading up. Late blight: water-soaked lesions, rapid collapse.",
+    symptoms:["brown spots","dark spots","yellow halo","tomato spots","lower leaf drop","blight"],
+    organic:["Copper-based fungicide — preventive spray every 7-10 days in wet weather","Remove infected leaves promptly — bag and dispose, never compost","Mulch 2-3 inches to prevent soil splash onto lower leaves","Drip irrigation — keeps foliage dry"],
+    conventional:["Chlorothalonil (Daconil) — broad-spectrum contact fungicide; preventive use","Mancozeb — effective contact fungicide for early and late blight"],
+    ipm:"UC IPM: Early blight (Alternaria) is common in Zone 9b summer. Late blight (Phytophthora infestans) is rare but devastating — report suspected late blight to your county agricultural commissioner. Rotate tomato crops annually." },
+
+  { name:"Root Rot (Phytophthora)", emoji:"🌱", type:"disease", season:"Year-round (worst in wet/overwatered conditions)",
+    source:"UC IPM Pest Notes: Phytophthora Root and Crown Rot (updated June 2022)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/phytophthora-root-and-crown-rot/",
+    damage:"Wilting despite moist soil. Brown or black, water-soaked roots or crown. Plant decline or sudden death.",
+    symptoms:["wilting with wet soil","wilting despite watering","brown roots","mushy roots","plant collapse","damping off","seedling collapse"],
+    organic:["Improve drainage first — amend with compost, raise beds; Phytophthora thrives in saturated soils","Reduce watering — allow soil to dry between irrigations","Trichoderma-based products (RootShield) — beneficial fungi that compete with Phytophthora","Remove and dispose of infected plants and surrounding soil"],
+    conventional:["Fosetyl-Al (Aliette) — systemic phosphonate; UC IPM-listed for Phytophthora","Mefenoxam (Subdue Maxx) — soil drench for Pythium and Phytophthora; professional use"],
+    ipm:"UC IPM: Phytophthora spreads in water and on equipment — disinfect tools. Zone 9b clay soils are especially prone to saturation. Plant in raised beds with excellent drainage. No chemical treatment saves a severely infected plant; prevention is essential." },
+
+  { name:"Rust Fungus", emoji:"🟠", type:"disease", season:"Spring–early Summer",
+    source:"UC IPM: Rusts of Trees and Shrubs (home and landscape garden guidelines)",
+    url:"https://ipm.ucanr.edu/PMG/GARDEN/PLANTS/DISEASES/rusts.html",
+    damage:"Orange-yellow pustules on leaf undersides; yellow spots on upper surface. Premature leaf drop.",
+    symptoms:["orange spots","rust colored","orange powder","orange pustules","yellow spots","rust"],
+    organic:["Remove infected leaves — bag and dispose; do not compost","Sulfur-based fungicide — very effective preventive; avoid above 90F or within 2 weeks of oil application","Neem oil — some suppression; apply every 7-14 days","Improve airflow — avoid wetting foliage"],
+    conventional:["Propiconazole (Banner Maxx) — systemic triazole; very effective curative and preventive","Myclobutanil — broad-spectrum triazole for rust and powdery mildew"],
+    ipm:"UC IPM: Each species of rust is specific to certain hosts — rose rust won't spread to beans. Rust spores spread by wind and require wet conditions (6-8 hours) for germination and infection. Avoid overhead watering. Collect and dispose of fallen infected leaves — do not compost. For roses in coastal locations where rust is chronic, resistant cultivars are the best long-term solution. Fungicides applied in spring can prevent some rust diseases but frequent applications are often not warranted for landscape plants." },
+
+  { name:"Fusarium Wilt", emoji:"🥀", type:"disease", season:"Summer (triggered by warm soil)",
+    source:"UC IPM: Fusarium Wilt (home and landscape garden guidelines)",
+    url:"https://ipm.ucanr.edu/PMG/GARDEN/PLANTS/DISEASES/fusariumwlt.html",
+    damage:"One-sided yellowing and wilting. Brown vascular tissue visible when stem is cut. Plant death.",
+    symptoms:["one sided wilting","yellowing one side","brown inside stem","wilting tomato","wilt","vascular browning"],
+    organic:["Remove and destroy infected plants — do not compost; Fusarium persists in soil for years","Soil solarization — clear plastic over moist soil in Zone 9b summer heat for 4-6 weeks; UC IPM recommends for pathogen reduction","Trichoderma-based products — some suppression as soil amendment","Plant resistant varieties — look for F on tomato tags"],
+    conventional:["No highly effective chemical cure — thiophanate-methyl soil drench may slow spread but won't cure infected plants"],
+    ipm:"UC IPM: Fusarium wilt and Verticillium wilt symptoms can be indistinguishable — determining which requires submitting samples to a plant diagnostic laboratory for culturing. Cutting into infected vascular tissue reveals brown discoloration all the way from terminal shoot to soil line; cross-sections of basal stems may show brown rings. Remove and dispose of infected plants promptly to reduce pathogen spread to nearby hosts. Soil solarization before planting may reduce or delay infection. Long-distance spread occurs via seed, transplants, and soil on equipment — clean tools between beds." },
+
+  { name:"Sooty Mold", emoji:"🖤", type:"disease", season:"Year-round (follows honeydew pests)",
+    source:"UC IPM Pest Notes: Sooty Mold (updated Sept 2020)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/sooty-mold/",
+    damage:"Black, crusty or powdery fungal coating on leaves and stems. Reduces photosynthesis. Unsightly.",
+    symptoms:["black coating","black mold","sooty","black crusty","black sticky leaves"],
+    organic:["Identify and control the honeydew pest first (aphids, whiteflies, soft scales, mealybugs, psyllids)","Wash leaves with mild soapy water once pest is controlled","Horticultural oil — loosens sooty mold and kills the honeydew-producing insects simultaneously"],
+    conventional:["Treat the underlying pest — sooty mold itself requires no fungicide"],
+    ipm:"UC IPM: Sooty mold grows on honeydew excreted by sap-sucking insects. Treating the mold directly is ineffective. Once the pest is controlled, mold will weather away or can be washed off. Manage ants, which protect honeydew-producing insects from natural enemies." },
+
+  { name:"Damping Off", emoji:"🌿", type:"disease", season:"Cool, wet conditions (Oct–Apr)",
+    source:"UC IPM Pest Notes: Damping-Off Diseases in the Garden (updated Jan 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/damping-off-diseases-in-the-garden/",
+    damage:"Seedlings fail to emerge, or collapse and die shortly after emergence. Dark, shriveled stem at soil line. Seeds rot before germinating.",
+    symptoms:["seedling collapse","seedlings dying","failing to emerge","dark stem at soil line","rotting seeds","seedling death","damping off","wilting seedlings"],
+    organic:["Use sterile seed-starting mix — never garden soil in containers; pathogens (Pythium, Rhizoctonia, Phytophthora) persist in native soil","Avoid overwatering — UC IPM: water management is the most important preventive measure; let surface dry between waterings","Improve air circulation — use a fan on seedlings to reduce humidity and strengthen stems","Solarize soil — clear plastic over moist soil in Zone 9b summer heat for 4-6 weeks before planting; UC IPM recommends for container media and open beds","Use disease-free seed from reputable suppliers — avoid saving seed from infected plants","Treat seed-starting mix with steam (140F for 30 min) for high-value crops"],
+    conventional:["Mefenoxam (Subdue) drench — targets Pythium and Phytophthora; professional use; resistance has developed in some areas","Captan or Thiram seed treatment — fungicide coating before planting; reduces pre-emergence damping off","Metalaxyl seed treatment — for Pythium-prone soils"],
+    ipm:"UC IPM: Damping-off is caused by a complex of soil-borne fungi and oomycetes — primarily Pythium, Rhizoctonia, and Phytophthora. Cool, wet soils are the primary trigger; Zone 9b fall and winter plantings are most at risk. Vigorous seedlings grown under ideal light and warm temperatures (above 55F) often survive even in the presence of these pathogens. Once seedlings reach the 2-3 leaf stage, susceptibility drops significantly. Prevention through sterile media and careful watering is far more effective than any chemical treatment." },
+
+  { name:"Blossom End Rot", emoji:"🍅", type:"disease", season:"Early season (first fruits), summer",
+    source:"UC Cooperative Extension/UC ANR: Managing Blossom-End Rot in Tomatoes and Peppers (Cindy Fake, Horticulture Advisor)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/",
+    damage:"Dark, sunken, leathery area on the bottom (blossom end) of tomatoes, peppers, and eggplant. Tan to black discoloration. First fruits of the season most affected. NOT a fungal disease — a physiological disorder.",
+    symptoms:["dark bottom tomato","sunken spot tomato","black bottom pepper","blossom end","leathery spot fruit","rot on bottom of tomato","dark spot bottom fruit"],
+    organic:["Consistent, even watering — UC ANR: BER is primarily a water management issue, not a calcium deficiency; wide fluctuations in soil moisture are the main trigger","Mulch heavily — 3-4 inches of mulch stabilizes soil moisture and reduces water stress","Avoid excess nitrogen fertilizer — stimulates leaf growth which pulls calcium away from fruit via transpiration","Avoid disturbing roots — deep cultivation near plants disrupts calcium uptake","Do NOT add calcium to soil — UC ANR: most California soils have adequate calcium; soil and foliar calcium applications rarely affect BER incidence and are not recommended"],
+    conventional:["No effective chemical treatment — UC ANR explicitly states foliar calcium sprays are unlikely to affect BER; calcium only moves in the xylem with water, not from leaf surface into fruit","Remove affected fruit — does not cure the plant but reduces disease load and redirects plant energy"],
+    ipm:"UC ANR: Blossom-end rot is a physiological disorder caused by localized calcium deficiency in the fruit, triggered by water stress — not a pathogen. The fix is irrigation management, not calcium. Cherry tomatoes are rarely affected. Roma and paste types are most susceptible. BER usually resolves on its own as the season progresses and growth slows. Early plantings in cold soil are especially prone because cool conditions restrict transpiration and calcium movement. Zone 9b: plant tomatoes after soil warms to avoid early-season BER." },
+
+  { name:"Rats", emoji:"🐀", type:"vertebrate", season:"Year-round (worse fall–winter)",
+    source:"UC IPM Pest Notes: Rats (updated June 2025)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/rats/",
+    damage:"Gnawed fruit and nuts, chewed irrigation lines, contaminated food, disease transmission. Roof rats nest above ground; Norway rats burrow.",
+    symptoms:["gnawed fruit","gnaw marks","missing fruit at night","burrows","rat droppings","chewed stems"],
+    organic:["Snap traps — UC IPM: safest, most effective, most economical; place along walls for Norway rats; on ledges and branches for roof rats","Remove food sources — fallen fruit, sealed compost, bring pet food in at night","Seal entry points — gaps larger than 1/4 inch with steel wool, wire screen, or sheet metal","Remove harborage — thin dense shrubs, remove ivy, prune branches within 3 feet of roof"],
+    conventional:["Rodenticide bait stations — use only tamper-resistant stations; as of Jan 2025, second-generation anticoagulants restricted to licensed applicators in CA; serious risk to raptors and wildlife"],
+    ipm:"UC IPM (June 2025): Roof rats are most common in California urban gardens — they climb and nest in trees, vines, attics, and walls. Norway rats burrow. Snap traps are UC IPM's preferred method. Removing food, water, and shelter is essential — trapping without habitat modification gives only temporary relief." },
+
+  { name:"Mice (House Mouse)", emoji:"🐁", type:"vertebrate", season:"Year-round (worse fall–winter)",
+    source:"UC IPM Pest Notes: House Mouse (added 2025)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/house-mouse/",
+    damage:"Gnawed seedlings and seeds, chewed drip tubing, small burrows. Droppings near food.",
+    symptoms:["gnawed seedlings","missing seeds","chewed tubing","small burrows","tunnels in mulch","tiny droppings"],
+    organic:["Snap traps — UC IPM's preferred method; place under boards or in tunnels, out of reach of children and pets","Reduce cover — remove mulch from seedling areas temporarily","Hardware cloth covers — protect direct-sown seeds","Eliminate food and water sources — sealed compost, no standing water"],
+    conventional:["Enclosed bait stations with rodenticide — use only tamper-resistant stations; second-generation anticoagulants restricted to licensed applicators in CA as of Jan 2025"],
+    ipm:"UC IPM: House mice rarely travel more than 30 feet from their nest. Check for rats as well — they often share habitat. Populations spike in fall when mice seek warm shelter." },
+
+  { name:"Voles (Meadow Mice)", emoji:"🐹", type:"vertebrate", season:"Year-round",
+    source:"UC IPM Pest Notes: Voles (Meadow Mice) (updated Apr 2023)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/voles/",
+    damage:"Girdled tree trunks and shrubs (bark chewed at base), surface runways through grass, tunneled roots.",
+    symptoms:["surface runways","girdled trunk","chewed bark at base","wilting no cause","tunnels at soil level"],
+    organic:["Hardware cloth cylinders — wrap trunks of young trees; bury 6 inches deep, extend 18 inches above ground","Snap traps in active runways — place perpendicular to runway; cover with board to protect non-targets","Remove dense groundcover and mulch directly around trunks","Castor oil repellent — drench soil per label; repeat after rain"],
+    conventional:["Zinc phosphide grain bait — place in active runways; follow label carefully; UC IPM recommends for severe infestations"],
+    ipm:"UC IPM: Voles make surface runways 1-2 inches wide through grass and gnaw bark at soil level (unlike moles, which make raised ridges). Keep grass mowed short near garden beds. Peak activity in winter when vegetation is dense." },
+
+  { name:"Squirrels", emoji:"🐿️", type:"vertebrate", season:"Year-round (active spring–fall)",
+    source:"UC IPM Pest Notes: Ground Squirrel (updated Apr 2024)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/ground-squirrels/",
+    damage:"Dug-up bulbs, stolen tomatoes and tree fruit, chewed irrigation lines, burrowing (ground squirrels only).",
+    symptoms:["dug up bulbs","missing tomatoes","half-eaten fruit","dug holes","stolen nuts","chewed drip lines"],
+    organic:["Hardware cloth cloches or netting — exclude squirrels from beds and fruiting plants; secure all edges","Trunk guards — wrap trunks with 18-inch metal collars to prevent climbing","Motion-activated sprinkler — effective deterrent for ground squirrels","Plant bulbs under hardware cloth layer — discourages digging"],
+    conventional:["Ground squirrels: zinc phosphide or anticoagulant bait stations — follow all label directions","Tree squirrels: check current CA DFW regulations — some require a permit; live traps require relocation or euthanasia per state law"],
+    ipm:"UC IPM: California ground squirrels and eastern fox squirrels are both common in Bay Area gardens. Ground squirrels burrow; tree squirrels don't. Exclusion is more effective long term than trapping. Check Contra Costa County regulations before using lethal controls." },
+
+  { name:"Birds", emoji:"🐦", type:"vertebrate", season:"Spring–Summer (fruiting season)",
+    source:"UC IPM: Birds on Tree Fruits and Vines (home and landscape vertebrate pest guidelines)",
+    url:"https://ipm.ucanr.edu/home-and-landscape/birds-on-tree-fruits-and-vines/",
+    damage:"Pecked or stolen fruit and berries. Pulled seedlings. Peck marks in tomatoes, strawberries, and grapes.",
+    symptoms:["pecked fruit","stolen berries","pulled seedlings","missing strawberries","peck marks","half-eaten tomatoes"],
+    organic:["Bird netting — UC IPM's most effective method; use 3/4-inch or smaller mesh and secure all edges to prevent entanglement","Row covers — protect seedbeds until plants are established","Mylar flash tape or predator decoys — short-term deterrent only; birds habituate quickly; move decoys frequently","Harvest early — pick fruit at first sign of ripening if birds are persistent"],
+    conventional:["No chemical controls appropriate for birds. All native songbirds protected under the federal Migratory Bird Treaty Act. Invasive species (European starling, house sparrow, rock pigeon) are not protected."],
+    ipm:"UC IPM: Always consider habitat modification first — eliminate brush piles, stacks of irrigation pipes, and debris where birds may rest and nest. Netting is the most effective exclusion method for high-value crops; extend to ground and tie off all ends. Frightening devices work only temporarily — when birds no longer respond negatively, switch to a different tactic. Rotating tactics is essential. Once birds are accustomed to feeding in an area, frightening tactics become much less effective. Scrub-jays and crows protected under CA Fish and Wildlife regulations; require permits for lethal control. House sparrows and European starlings are invasive and not protected." }
+];
+
+const SYMPTOM_OPTIONS = [
+  { label:"Holes or chewed leaves", emoji:"🕳️", keywords:["holes","chewed","missing foliage","defoliation","kale holes","broccoli damage"] },
+  { label:"Sticky, sooty, or black coating", emoji:"🍯", keywords:["sticky","honeydew","sooty mold","black coating","black sticky"] },
+  { label:"White powder or coating", emoji:"⬜", keywords:["white powder","white coating","powdery","mildew"] },
+  { label:"Wilting despite watering", emoji:"🥀", keywords:["wilting with wet soil","wilting despite watering","plant collapse","damping off"] },
+  { label:"Brown/yellow spots or patches", emoji:"🟡", keywords:["brown spots","orange spots","yellow halo","stippled","rust colored","dark spots"] },
+  { label:"Webbing on leaves", emoji:"🕸️", keywords:["webbing","fine webs","dusty webbing"] },
+  { label:"Slime trails", emoji:"🐌", keywords:["slime trail","silvery trail","night damage"] },
+  { label:"Tiny flies near soil", emoji:"🦟", keywords:["tiny flies near soil","flies around plants"] },
+  { label:"Fuzzy mold on fruit or flowers", emoji:"🍄", keywords:["gray mold","fuzzy mold","rotting","gray fuzz","flower rot"] },
+  { label:"Bumps or crust on stems", emoji:"🔵", keywords:["bumps on stems","waxy bumps","cottony masses"] },
+  { label:"Distorted or streaked growth", emoji:"〰️", keywords:["silver streaks","distorted flowers","curled leaves","bronzed"] },
+  { label:"One-sided wilting or browning", emoji:"🌿", keywords:["one sided wilting","yellowing one side","brown inside stem","wilt"] },
+  { label:"Dug-up bulbs or holes in soil", emoji:"⛏️", keywords:["dug up bulbs","dug holes","burrows","tunnels in mulch","surface runways"] },
+  { label:"Missing or stolen fruit/berries", emoji:"🍓", keywords:["missing tomatoes","stolen berries","missing fruit at night","half-eaten fruit","pecked fruit","peck marks"] },
+  { label:"Gnaw marks or chewed stems/bark", emoji:"🦷", keywords:["gnawed fruit","gnawed seedlings","gnaw marks","chewed stems","chewed tubing","girdled trunk"] }
+];
+
+const TYPE_STYLE = {
+  insect:     { border:"#86efac", badge:"#dcfce7", badgeText:"#166534", label:"Insect" },
+  disease:    { border:"#fdba74", badge:"#ffedd5", badgeText:"#9a3412", label:"Disease/Fungus" },
+  vertebrate: { border:"#c4b5fd", badge:"#ede9fe", badgeText:"#5b21b6", label:"Vertebrate" }
+};
+
+// ---- STATE ----
+let state = {
+  screen: "home",
+  query: "",
+  detail: null,
+  prevScreen: "search",
+  tab: "organic",
+  symptomMatches: [],
+  recentSearches: []
+};
+
+function setState(updates) {
+  // Auto-clear query whenever navigating to search screen
+  if (updates.screen === 'search' && updates.query === undefined) {
+    updates.query = '';
+  }
+  Object.assign(state, updates);
+  render();
+}
+
+// ---- HELPERS ----
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+
+function pestRank(pest, query) {
+  const q = query.toLowerCase();
+  const name = pest.name.toLowerCase();
+  if (name === q) return 0;                          // exact match
+  if (name.startsWith(q)) return 1;                  // starts with
+  if (name.includes(q)) return 2;                    // name contains
+  if (pest.damage.toLowerCase().includes(q)) return 3; // damage contains
+  return 99;
+}
+
+function pestMatches(pest, query) {
+  return pestRank(pest, query) < 99;
+}
+
+function symptomMatch(pest, opt) {
+  return pest.symptoms.some(s => opt.keywords.some(k =>
+    s.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(s.toLowerCase())
+  ));
+}
+
+function typeBadge(type) {
+  const s = TYPE_STYLE[type] || TYPE_STYLE.insect;
+  return `<span class="pest-card-type" style="background:${s.badge};color:${s.badgeText}">${s.label}</span>`;
+}
+
+function pestCardHtml(pest, idx) {
+  const s = TYPE_STYLE[pest.type] || TYPE_STYLE.insect;
+  return `<div class="pest-card ${pest.type}" onclick="openDetail(${idx})" style="border-color:${s.border}">
+    <span class="pest-card-emoji">${pest.emoji}</span>
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;flex-wrap:wrap">
+        <span class="pest-card-name">${escHtml(pest.name)}</span>${typeBadge(pest.type)}
+      </div>
+      <div class="pest-card-damage">${escHtml(pest.damage)}</div>
+    </div>
+    <span class="pest-card-arrow">›</span>
+  </div>`;
+}
+
+// ---- SCREENS ----
+function renderHome() {
+  return `
+  <div class="header"><div>
+    <div class="header-title">🌿 Garden Pest Advisor</div>
+    <div class="header-sub">Zone 9b · UC IPM-Based</div>
+  </div></div>
+  <div class="page">
+    <div class="btn-card" onclick="setState({screen:'search', query:''})">
+      <span class="btn-card-emoji">🔍</span>
+      <div><div class="btn-card-title">Search by Pest Name</div>
+      <div class="btn-card-sub">Know what you're dealing with?</div></div>
+    </div>
+    <div class="btn-card yellow" onclick="setState({screen:'symptom'})">
+      <span class="btn-card-emoji">🔎</span>
+      <div><div class="btn-card-title">What's Eating My Plant?</div>
+      <div class="btn-card-sub">Identify by damage symptoms</div></div>
+    </div>
+    <div class="alert-box">
+      <div class="alert-title">🌡️ Zone 9b — May Alerts</div>
+      <div class="alert-body">Watch for: <strong>Spider Mites</strong> (heat incoming), <strong>Tomato Hornworm</strong> (season starting), <strong>Powdery Mildew</strong> on squash and roses. Good time for preventive neem oil.</div>
+    </div>
+  </div>`;
+}
+
+function renderSearch() {
+  const q = state.query.trim();
+  const pests = q
+    ? PESTS.filter(p => pestMatches(p, state.query))
+        .sort((a, b) => pestRank(a, state.query) - pestRank(b, state.query))
+    : PESTS;
+  const cards = !q
+    ? ''
+    : pests.length === 0
+      ? `<div class="no-results">No results. Try "mold", "wilt", "spots"…</div>`
+      : pests.map((p, _) => pestCardHtml(p, PESTS.indexOf(p))).join("");
+
+  const bannerTitle = q ? `🔍 "${q}"` : 'Search Pests & Diseases';
+  const bannerSub = q
+    ? (pests.length === 0 ? 'No matches' : pests.length + ' match' + (pests.length !== 1 ? 'es' : '') + ' · Zone 9b')
+    : 'Zone 9b · UC IPM-Based';
+
+
+
+  return `
+  <div class="header">
+    <button class="header-back" onclick="searchBack()">‹</button>
+    <div style="flex:1"><div class="header-title" id="banner-title">${bannerTitle}</div>
+    <div class="header-sub" id="banner-sub">${bannerSub}</div></div>
+  </div>
+  <div class="page">
+    <input class="search-input" type="search" placeholder="caterpillars, powdery mildew, rats…"
+      id="search-input" oninput="handleSearch(this.value)" autocomplete="off" autocorrect="off" autocapitalize="off">
+    <div class="badge-row">
+      <span class="badge badge-green">🐛 Insects</span>
+      <span class="badge badge-orange">🍄 Disease/Fungus</span>
+      <span class="badge badge-purple">🐀 Vertebrates</span>
+    </div>
+    <div id="pest-list">${cards}<div class="spacer"></div></div>
+  </div>`;
+}
+
+function renderSymptom() {
+  const cards = SYMPTOM_OPTIONS.map((opt, i) => `
+    <div class="symptom-card" onclick="pickSymptom(${i})">
+      <span class="symptom-emoji">${opt.emoji}</span>
+      <span class="symptom-label">${escHtml(opt.label)}</span>
+      <span class="symptom-arrow">›</span>
+    </div>`).join("");
+  return `
+  <div class="header" style="background:#d97706">
+    <button class="header-back" onclick="setState({screen:'home'})">‹</button>
+    <div><div class="header-title">What's Eating My Plant?</div>
+    <div class="header-sub">Zone 9b · UC IPM-Based</div></div>
+  </div>
+  <div class="page bg-symptom">
+    <div class="symptom-hint">Tap the description that best matches what you see in your garden.</div>
+    <div id="pest-list">${cards}<div class="spacer"></div></div>
+  </div>`;
+}
+
+function renderSymptomResults() {
+  const matches = state.symptomMatches;
+  const cards = matches.length === 0
+    ? `<div class="no-results">No matches. Try a different symptom.</div>`
+    : matches.map(p => pestCardHtml(p, PESTS.indexOf(p))).join("");
+  return `
+  <div class="header" style="background:#d97706">
+    <button class="header-back" onclick="setState({screen:'symptom'})">‹</button>
+    <div><div class="header-title">${matches.length} Possible Cause${matches.length !== 1 ? "s" : ""}</div>
+    <div class="header-sub">Zone 9b · UC IPM-Based</div></div>
+  </div>
+  <div class="page bg-symptom">
+    <div style="font-size:13px;color:#6b7280;margin-bottom:12px">Tap any result to see treatments.</div>
+    ${cards}
+    <div class="spacer"></div>
+  </div>`;
+}
+
+function renderDetail() {
+  const p = state.detail;
+  if (!p) return "";
+  const s = TYPE_STYLE[p.type] || TYPE_STYLE.insect;
+  const bgClass = p.type === "disease" ? "bg-disease" : p.type === "vertebrate" ? "bg-vertebrate" : "bg-insect";
+
+  const organicHtml = p.organic.map(t =>
+    `<div class="treatment-card">✅ ${escHtml(t)}</div>`).join("");
+
+  const warning = p.type === "vertebrate"
+    ? "⚠️ Follow all label directions. Check local regulations (Contra Costa County). Protect non-target wildlife and pets."
+    : "⚠️ Last resort only. Follow label directions. Observe pre-harvest intervals. Protect pollinators.";
+  const conventionalHtml = `<div class="conventional-warning">${warning}</div>` +
+    p.conventional.map(t => `<div class="conventional-card">⚗️ ${escHtml(t)}</div>`).join("");
+
+  const ipmHtml = `<div class="ipm-card">
+    <div class="ipm-label">Zone 9b IPM Notes</div>
+    <div class="ipm-text">${escHtml(p.ipm)}</div>
+  </div>`;
+
+  const tabContent = state.tab === "organic" ? organicHtml
+    : state.tab === "conventional" ? conventionalHtml
+    : ipmHtml;
+
+  return `
+  <div class="header">
+    <button class="header-back" onclick="setState({screen:state.prevScreen, query:''})">‹</button>
+    <div><div class="header-title">${escHtml(p.name)}</div>
+    <div class="header-sub">Zone 9b · UC IPM-Based</div></div>
+  </div>
+  <div class="page ${bgClass}">
+    <div class="detail-card" style="border:1.5px solid ${s.border}">
+      <div class="detail-header">
+        <span class="detail-emoji">${p.emoji}</span>
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+            <span class="detail-name">${escHtml(p.name)}</span>
+            <span style="font-size:10px;padding:2px 7px;border-radius:6px;font-weight:600;background:${s.badge};color:${s.badgeText}">${s.label}</span>
+          </div>
+          <div class="detail-season">🗓 Peak: ${escHtml(p.season)}</div>
+        </div>
+      </div>
+      <div class="damage-box">
+        <div class="damage-label">Damage / Symptoms</div>
+        <div class="damage-text">${escHtml(p.damage)}</div>
+      </div>
+      ${p.source ? `<div class="source-text">📚 ${escHtml(p.source)}</div>` : ""}
+    </div>
+
+    <div class="tabs">
+      <button class="tab ${state.tab === 'organic' ? 'active-organic' : ''}" onclick="setState({tab:'organic'})">🌱 Organic</button>
+      <button class="tab ${state.tab === 'conventional' ? 'active-conventional' : ''}" onclick="setState({tab:'conventional'})">⚗️ Chemical</button>
+      <button class="tab ${state.tab === 'ipm' ? 'active-ipm' : ''}" onclick="setState({tab:'ipm'})">💡 IPM Tips</button>
+    </div>
+
+    ${tabContent}
+    <div class="spacer"></div>
+  </div>`;
+}
+
+// ---- ACTIONS ----
+function openDetail(pestIdx) {
+  setState({ screen: "detail", detail: PESTS[pestIdx], prevScreen: state.screen, tab: "organic" });
+}
+
+function pickSymptom(optIdx) {
+  const opt = SYMPTOM_OPTIONS[optIdx];
+  const matches = PESTS.filter(p => symptomMatch(p, opt));
+  setState({ screen: "symptom_results", symptomMatches: matches });
+}
+
+// ---- RENDER ----
+function render() {
+  const app = document.getElementById("app");
+  const html = {
+    home: renderHome,
+    search: renderSearch,
+    symptom: renderSymptom,
+    symptom_results: renderSymptomResults,
+    detail: renderDetail
+  }[state.screen];
+  app.innerHTML = html ? html() : "";
+  // Restore search input value and focus without disrupting cursor
+  const inp = document.getElementById("search-input");
+  if (inp) {
+    inp.value = state.query;
+    // Trigger a filter update to show results for the restored query
+    if (state.query.trim()) {
+      handleSearch(state.query);
+    }
+    inp.focus();
+  } else {
+    window.scrollTo(0, 0);
+  }
+}
+
+let searchTimer = null;
+function handleSearch(val) {
+  state.query = val;
+  // Update the input value if called from recent searches
+  const inp = document.getElementById("search-input");
+  if (inp && inp.value !== val) inp.value = val;
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    const q = state.query.trim();
+    // Save to recent searches when there are results
+    if (q && q.length > 1) {
+      const pests = PESTS.filter(p => pestMatches(p, state.query));
+      if (pests.length > 0) {
+        state.recentSearches = [q, ...state.recentSearches.filter(r => r !== q)].slice(0, 5);
+      }
+    }
+    const pests = q
+      ? PESTS.filter(p => pestMatches(p, state.query))
+          .sort((a, b) => pestRank(a, state.query) - pestRank(b, state.query))
+      : [];
+    const cards = !q
+      ? ""
+      : pests.length === 0
+        ? '<div class="no-results">No results. Try "mold", "wilt", "spots"…</div>'
+        : pests.map(p => pestCardHtml(p, PESTS.indexOf(p))).join("");
+    // Update banner
+    const bannerTitle = document.getElementById("banner-title");
+    const bannerSub = document.getElementById("banner-sub");
+    if (bannerTitle) bannerTitle.textContent = q ? '🔍 "' + q + '"' : "Search Pests & Diseases";
+    if (bannerSub) bannerSub.textContent = q
+      ? (pests.length === 0 ? "No matches" : pests.length + " match" + (pests.length !== 1 ? "es" : "") + " · Zone 9b")
+      : "Zone 9b · UC IPM-Based";
+    const list = document.getElementById("pest-list");
+    if (list) list.innerHTML = cards + '<div class="spacer"></div>';
+  }, 150);
+}
+
+function searchBack() {
+  setState({screen:'home', query:''});
+}
+
+function clearSearch() {
+  setState({screen:'home', query:''});
+}
+
+function removeRecent(term) {
+  state.recentSearches = state.recentSearches.filter(r => r !== term);
+  render();
+}
+
+// Make state accessible to inline onclick handlers
+window.setState = setState;
+window.openDetail = openDetail;
+window.pickSymptom = pickSymptom;
+window.clearSearch = clearSearch;
+window.searchBack = searchBack;
+window.removeRecent = removeRecent;
+window.handleSearch = handleSearch;
+window.state = state;
+
+render();
+</script>
+</body>
+</html>
